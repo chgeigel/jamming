@@ -1,12 +1,12 @@
 const CORS_URL='https://cors-anywhere.herokuapp.com/';
 //const CORS_URL='';
-const SPOTIFY_API_URL = 'https://api.spotify.com/';
+const SPOTIFY_SEARCH_API_URL = 'https://api.spotify.com/v1/search';
 var oauthToken = 'BQBJhMVDvN_kVO1PDHjS1ZecThLHybzeua8NqYbXcji-CBhhCYYxhTIjqXrV';
 
 export const Spotify = {
 
   search(term) {
-    return fetch(`${CORS_URL}${SPOTIFY_API_URL}search?q=${term}&type=album,artist,track`,{
+    return fetch(`${CORS_URL}${SPOTIFY_SEARCH_API_URL}?q=${term}&type=album,artist,track`,{
         headers: {
           'Authorization': `Bearer ${oauthToken}`
         }
