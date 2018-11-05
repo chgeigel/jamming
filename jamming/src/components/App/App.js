@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import './App.css';
-import SearchBar from './components/SearchBar/SearchBar';
-import AppPlayList from './components/AppPlayList/AppPlayList';
-import {Spotify} from './utils/Spotify';
+import SearchBar from '../SearchBar/SearchBar';
+import AppPlayList from '../AppPlayList/AppPlayList';
+import {Spotify} from '../../utils/Spotify';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      playListName: '',
       searchResults: [
         {
           id: '1',
@@ -63,7 +64,9 @@ class App extends Component {
     };
     this.handleAddTrackToPLayList = this.handleAddTrackToPLayList.bind(this);
     this.handleRemoveTrackFromPlayList = this.handleRemoveTrackFromPlayList.bind(this);
+    this.handleChangePlayListName = this.handleChangePlayListName.bind(this);
     this.searchSpotify = this.searchSpotify.bind(this);
+    this.savePlayList = this.savePlayList.bind(this);
   }
 
   handleAddTrackToPLayList(index) {
@@ -78,9 +81,18 @@ class App extends Component {
     this.setState({playList: newList});
   }
 
+  handleChangePlayListName(name) {
+    this.setState({playListName: name});
+  }
+
   searchSpotify(searchTerm) {
     console.log(`Searching spotify for ${searchTerm}`);
-    Spotify.search(searchTerm);
+//    Spotify.search(searchTerm);
+  }
+
+  savePlayList() {
+    console.log(`saving playlist ${this.state.playListName}`);    
+//    Spotify.createPlayList(this.state.playListName, this.state.playList);
   }
 
   render() {
@@ -91,6 +103,8 @@ class App extends Component {
             <AppPlayList
                 onAddToPlayList={this.handleAddTrackToPLayList}
                 onRemoveFromPlayList={this.handleRemoveTrackFromPlayList}
+                onChangePlayListName={this.handleChangePlayListName}
+                savePlayList={this.savePlayList}
                 searchResults={this.state.searchResults}
                 playList={this.state.playList}/>
           </div>
