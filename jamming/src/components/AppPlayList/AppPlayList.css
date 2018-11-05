@@ -1,0 +1,12 @@
+.AppPlayList {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+@media only screen and (max-width: 1020px) {
+  .AppPlayList {
+    align-items: center;
+    flex-direction: column;
+  }
+}
