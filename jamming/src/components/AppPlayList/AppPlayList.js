@@ -10,7 +10,6 @@ class AppPlayList extends React.Component {
       <div className="AppPlayList">
         <SearchResults onAddToPlayList={this.props.onAddToPlayList} searchResults={this.props.searchResults}/>
         <Playlist onRemoveFromPlayList={this.props.onRemoveFromPlayList}
-                  onChangePlayListName={this.props.onChangePlayListName}
                   savePlayList={this.props.savePlayList}
                   playList={this.props.playList}/>
       </div>

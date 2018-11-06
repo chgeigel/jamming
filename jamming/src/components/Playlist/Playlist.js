@@ -16,14 +16,13 @@ class Playlist extends React.Component {
 
   handleChangePlayListName(event) {
     this.setState({playListName: event.target.value});
-    this.props.onChangePlayListName(event.target.value);
   }
 
   handleSavePlayList(event) {
     if ( this.state.playListName === '' ) {
       alert('You must specify a play list name.');
     } else {
-      this.props.savePlayList();
+      this.props.savePlayList(this.state.playListName);
     }
     event.preventDefault();
   }

@@ -9,6 +9,9 @@ class App extends Component {
     super(props);
     this.state = {
       playListName: '',
+      playListURI: '',
+      playListId: '',
+      playListSnapshotId: '',
       searchResults: [],
       playList: []
 /*
@@ -68,7 +71,6 @@ class App extends Component {
     };
     this.handleAddTrackToPLayList = this.handleAddTrackToPLayList.bind(this);
     this.handleRemoveTrackFromPlayList = this.handleRemoveTrackFromPlayList.bind(this);
-    this.handleChangePlayListName = this.handleChangePlayListName.bind(this);
     this.searchSpotify = this.searchSpotify.bind(this);
     this.savePlayList = this.savePlayList.bind(this);
   }
@@ -85,10 +87,6 @@ class App extends Component {
     this.setState({playList: newList});
   }
 
-  handleChangePlayListName(name) {
-    this.setState({playListName: name});
-  }
-
   searchSpotify(searchTerm) {
 //    console.log(`Searching spotify for ${searchTerm}`);
     Spotify.search(searchTerm).then(results => {
@@ -97,9 +95,18 @@ class App extends Component {
     });
   }
 
-  savePlayList() {
-    console.log(`saving playlist ${this.state.playListName}`);
-//    Spotify.createPlayList(this.state.playListName, this.state.playList);
+  savePlayList(name) {
+    console.log(`Setting playlist name ${name}`);
+    this.setState({playListName: name});
+    const uris = this.state.playList.map(track => track.uri );
+    console.log(`   URIs: ${uris}`);
+    Spotify.createPlayList(name).then(results => {
+      this.setState({playListURI: results.uri, playListId: results.id});
+    }).then(()=> {
+      Spotify.addTracksToPlayList(this.state.playListId, uris).then(results => {
+        this.setState({playListSnapshotId: results, playList: []});
+      });
+    });
   }
 
   render() {
@@ -110,7 +117,6 @@ class App extends Component {
             <AppPlayList
                 onAddToPlayList={this.handleAddTrackToPLayList}
                 onRemoveFromPlayList={this.handleRemoveTrackFromPlayList}
-                onChangePlayListName={this.handleChangePlayListName}
                 savePlayList={this.savePlayList}
                 searchResults={this.state.searchResults}
                 playList={this.state.playList}/>
