@@ -9,6 +9,9 @@ class App extends Component {
     super(props);
     this.state = {
       playListName: '',
+      searchResults: [],
+      playList: []
+/*
       searchResults: [
         {
           id: '1',
@@ -61,6 +64,7 @@ class App extends Component {
           name: "It's Not Right But It's Okay"
         }
       ]
+      */
     };
     this.handleAddTrackToPLayList = this.handleAddTrackToPLayList.bind(this);
     this.handleRemoveTrackFromPlayList = this.handleRemoveTrackFromPlayList.bind(this);
@@ -86,12 +90,15 @@ class App extends Component {
   }
 
   searchSpotify(searchTerm) {
-    console.log(`Searching spotify for ${searchTerm}`);
-//    Spotify.search(searchTerm);
+//    console.log(`Searching spotify for ${searchTerm}`);
+    Spotify.search(searchTerm).then(results => {
+//      console.log('Results ' + JSON.stringify(results));
+      this.setState({searchResults: results});
+    });
   }
 
   savePlayList() {
-    console.log(`saving playlist ${this.state.playListName}`);    
+    console.log(`saving playlist ${this.state.playListName}`);
 //    Spotify.createPlayList(this.state.playListName, this.state.playList);
   }
 
