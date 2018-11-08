@@ -5,24 +5,15 @@ import TrackList from '../TrackList/TrackList';
 class Playlist extends React.Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      playListName: ''
-    }
-
-    this.handleChangePlayListName = this.handleChangePlayListName.bind(this);
     this.handleSavePlayList = this.handleSavePlayList.bind(this);
   }
 
-  handleChangePlayListName(event) {
-    this.setState({playListName: event.target.value});
-  }
-
   handleSavePlayList(event) {
-    if ( this.state.playListName === '' ) {
+    if ( document.getElementById('playListName').value === '' ) {
       alert('You must specify a play list name.');
     } else {
-      this.props.savePlayList(this.state.playListName);
+      this.props.savePlayList(document.getElementById('playListName').value);
+      document.getElementById('playListName').value='';
     }
     event.preventDefault();
   }
@@ -30,7 +21,7 @@ class Playlist extends React.Component {
   render() {
     return (
       <div className="Playlist">
-        <input defaultValue='New Playlist' onChange={this.handleChangePlayListName}/>
+        <input placeholder='New Playlist' id='playListName'/>
         <TrackList tracks={this.props.playList} mode='remove' clickHandler={this.props.onRemoveFromPlayList}/>
         <a className="Playlist-save" onClick={this.handleSavePlayList}>SAVE TO SPOTIFY</a>
       </div>

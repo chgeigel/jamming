@@ -34,45 +34,36 @@ class App extends Component {
   }
 
   searchSpotify(searchTerm) {
-    console.log(`Searching spotify for ${searchTerm}`);
-    Spotify.getToken().then(results => {
-      console.log(`getToken results ${results}`);
-    }).then(() => {
-      Spotify.search(searchTerm).then(results => {
-        console.log('Results ' + JSON.stringify(results));
-        this.setState({searchResults: results});
-      });
+//    console.log(`Searching spotify for ${searchTerm}`);
+    Spotify.search(searchTerm).then(results => {
+//      console.log('Results ' + JSON.stringify(results));
+      this.setState({searchResults: results});
     });
   }
 
   savePlayList(name) {
-    console.log(`Setting playlist name ${name}`);
+//    console.log(`Setting playlist name ${name}`);
     this.setState({playListName: name});
     const uris = this.state.playList.map(track => track.uri );
-    console.log(`   URIs: ${uris}`);
-    Spotify.createPlayList(name).then(results => {
-      this.setState({playListURI: results.uri, playListId: results.id});
-    }).then(()=> {
-      Spotify.addTracksToPlayList(this.state.playListId, uris).then(results => {
-        this.setState({playListSnapshotId: results, playList: []});
+//    console.log(`   URIs: ${uris}`);
+    Spotify.getUser().then(results => {
+//      console.log(`Retrieved user id`);
+    }).then(() => {
+      Spotify.createPlayList(name).then(results => {
+        this.setState({playListURI: results.uri, playListId: results.id});
+      }).then(()=> {
+        Spotify.addTracksToPlayList(this.state.playListId, uris).then(results => {
+          this.setState({playListSnapshotId: results, playList: []});
+        });
       });
     });
   }
 
   render() {
-    var currentURL = window.location.href;
-    console.log(`current url is ${currentURL}`);
-    var loginNeeded = true;
-    var regex = /access_token/;
-    var index = currentURL.search(regex)
-    if (  index !== -1 ) {
-      loginNeeded = false;
-    }
-    console.log(`login needed ${loginNeeded}`);
     return (
       <div>
           <div className="App">
-            <SearchBar loginNeeded={loginNeeded} searchSpotify={this.searchSpotify}/>
+            <SearchBar searchSpotify={this.searchSpotify}/>
             <AppPlayList
                 onAddToPlayList={this.handleAddTrackToPLayList}
                 onRemoveFromPlayList={this.handleRemoveTrackFromPlayList}

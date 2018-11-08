@@ -1,3 +1,4 @@
+const queryString=require('query-string');
 
 var userId = '';
 var oauthToken = '';
@@ -6,69 +7,27 @@ var searchType = 'track'; /* track, artist, ablum */
 
 export const Spotify = {
 
-  makeRequest(method, url) {
-    return new Promise(function (resolve, reject) {
-      var xhr = new XMLHttpRequest();
-      xhr.open(method, url);
-      xhr.onload = function () {
-        if (this.status >= 200 && this.status < 300) {
-          resolve(xhr.response);
-        } else {
-          reject({
-            status: this.status,
-            statusText: xhr.statusText
-          });
-        }
-      };
-      xhr.onerror = function () {
-        reject({
-          status: this.status,
-          statusText: xhr.statusText
-        });
-      };
-//      xhr.setRequestHeader('Access-Control-Allow-Origin','*');
-      xhr.send();
-    });
-  },
-
   getToken() {
-
-    if ( oauthToken !== '' ) {
-      console.log(`returning oauth token ${oauthToken}`);
-      return oauthToken;
+    const currentURL = window.location.hash;
+//    console.log(`current url is ${currentURL}`);
+    const parsed = queryString.parse(currentURL);
+//    console.log(parsed);
+    if ( parsed.access_token ) {
+      oauthToken = parsed.access_token;
     }
-    console.log(`Doing a GET of ${process.env.REACT_APP_SPOTIFY_LOGIN_URL}`);
-    /*
-    return fetch(process.env.REACT_APP_SPOTIFY_LOGIN_URL, {
-      mode: 'cors',
-      method: 'GET'
-    }).then(response => {
-      if ( response.ok) {
-        console.log(response);
-        return response.json();
-      }
-      alert('Failed to login');
-      }, networkError => console.log(networkError.message)
-    ).then(jsonResponse => {
-      return jsonResponse;
-    });
-    */
-
-    return this.makeRequest('GET',process.env.REACT_APP_SPOTIFY_LOGIN_URL).then(response => {
-      console.log(response);
-    });
+    if ( oauthToken === '' ) {
+//      console.log(`Doing a GET of ${process.env.REACT_APP_SPOTIFY_LOGIN_URL}`);
+      window.location = process.env.REACT_APP_SPOTIFY_LOGIN_URL;
+    }
   },
 
-  search(term) {
-      if ( oauthToken === '' ) {
-        alert('No Authorization Token present.');
-        return [];
-      } else {
+  getUser() {
+      // make sure we have an access token
+      this.getToken();
 
-        const url = process.env.REACT_APP_SPOTIFY_API_URL + 'search?' +
-                    'q='+encodeURIComponent(term) +
-                    '&type='+encodeURIComponent(searchType);
-        return fetch(url,{
+      const url = process.env.REACT_APP_SPOTIFY_API_URL + 'me';
+
+      return fetch(url,{
           method: 'GET',
           mode: 'cors',
           headers: {
@@ -78,10 +37,44 @@ export const Spotify = {
         if ( response.ok ) {
           return response.json();
         }
-        alert('Failed to search Spotify.');
+//        console.log(`Received HTTP Response Status Code ${response.status}`);
         }, networkError => console.log(networkError.message)
         ).then(jsonResponse => {
-    //        console.log(JSON.stringify(jsonResponse, undefined, 2));
+//            console.log(JSON.stringify(jsonResponse, undefined, 2));
+          if ( typeof jsonResponse != 'undefined' && jsonResponse.id ) {
+            userId = jsonResponse.id;
+//            console.log(`setting userid to ${userId}`);
+          }
+          return userId;
+        });
+  },
+
+
+  search(term) {
+      // make sure we have an access token
+      this.getToken();
+
+      const url = process.env.REACT_APP_SPOTIFY_API_URL + 'search?' +
+                  'q='+encodeURIComponent(term) +
+                  '&type='+encodeURIComponent(searchType);
+
+      return fetch(url,{
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Authorization': `Bearer ${oauthToken}`
+          }
+        }).then(response => {
+        if ( response.ok ) {
+          return response.json();
+        }
+        // console.log(`Received HTTP Response Status Code ${response.status}`);
+        // invalidate the user token if we have a failure here
+        oauthToken = '';
+        userId = '';
+        }, networkError => console.log(networkError.message)
+        ).then(jsonResponse => {
+//            console.log(JSON.stringify(jsonResponse, undefined, 2));
           const tracks = [];
           if ( typeof jsonResponse != 'undefined' && jsonResponse.tracks ) {
             jsonResponse.tracks.items.forEach(item => {
@@ -97,15 +90,18 @@ export const Spotify = {
               tracks.push(track);
             });
 //            console.log(JSON.stringify(tracks));
-            return tracks;
           }
-        });
-      }
+          return tracks;
+      });
   },
 
   createPlayList(name) {
       if ( oauthToken === '' ) {
         alert('No Authorization Token present.');
+        return {uri:'',id:''};
+
+      } else if ( userId === '' ) {
+        alert('Unable to retrieve user id from Spotify.');
         return {uri:'',id:''};
 
       } else {
@@ -130,6 +126,10 @@ export const Spotify = {
             return response.json();
           }
           alert('Failure creating playlist.');
+          // console.log(`Received HTTP Response Status Code ${response.status}`);
+          // invalidate the user token if we have a failure here
+          oauthToken = '';
+          userId = '';
         }, networkError => console.log(networkError.message)
         ).then(jsonResponse => {
 //            console.log(JSON.stringify(jsonResponse, undefined, 2));
@@ -146,9 +146,13 @@ export const Spotify = {
         alert('No Authorization Token present.');
         return '';
 
+      } else if ( userId === '' ) {
+        alert('Unable to retrieve user id from Spotify.');
+        return {uri:'',id:''};
+
       } else {
 
-        const url = process.env.REACT_APP_.SPOTIFY_API_URL +
+        const url = process.env.REACT_APP_SPOTIFY_API_URL +
                     'playlists/' +
                     playListId +
                     '/tracks';
@@ -170,6 +174,10 @@ export const Spotify = {
             return response.json();
           }
           alert('Failure adding tracks to playlist.');
+          // console.log(`Received HTTP Response Status Code ${response.status}`);
+          // invalidate the user token if we have a failure here
+          oauthToken = '';
+          userId = '';
         }, networkError => console.log(networkError.message)
         ).then(jsonResponse => {
 //            console.log(JSON.stringify(jsonResponse, undefined, 2));
