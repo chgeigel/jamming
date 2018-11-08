@@ -1,68 +1,76 @@
-const CORS_URL='https://cors-anywhere.herokuapp.com/';
-const SPOTIFY_AUTH_API_URL = 'https://accounts.spotify.com/authorize';
-const SPOTIFY_API_URL = 'https://api.spotify.com/v1/';
 
-var userId = 'schadwe';
+var userId = '';
 var oauthToken = '';
-var clientId = process.env.SPOTIFY_CLIENT_ID;
-var redirectURI = 'http://localhost:3000/callback';
-var scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private';
-var responseType = 'token';
+
 var searchType = 'track'; /* track, artist, ablum */
-
-var generateRandomString = function(length) {
-  var text = '';
-  var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for (var i = 0; i < length; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
-};
 
 export const Spotify = {
 
+  makeRequest(method, url) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open(method, url);
+      xhr.onload = function () {
+        if (this.status >= 200 && this.status < 300) {
+          resolve(xhr.response);
+        } else {
+          reject({
+            status: this.status,
+            statusText: xhr.statusText
+          });
+        }
+      };
+      xhr.onerror = function () {
+        reject({
+          status: this.status,
+          statusText: xhr.statusText
+        });
+      };
+//      xhr.setRequestHeader('Access-Control-Allow-Origin','*');
+      xhr.send();
+    });
+  },
+
   getToken() {
+
     if ( oauthToken !== '' ) {
+      console.log(`returning oauth token ${oauthToken}`);
       return oauthToken;
     }
+    console.log(`Doing a GET of ${process.env.REACT_APP_SPOTIFY_LOGIN_URL}`);
+    /*
+    return fetch(process.env.REACT_APP_SPOTIFY_LOGIN_URL, {
+      mode: 'cors',
+      method: 'GET'
+    }).then(response => {
+      if ( response.ok) {
+        console.log(response);
+        return response.json();
+      }
+      alert('Failed to login');
+      }, networkError => console.log(networkError.message)
+    ).then(jsonResponse => {
+      return jsonResponse;
+    });
+    */
 
-    const state = generateRandomString(16);
-
-    const url = CORS_URL +
-                SPOTIFY_AUTH_API_URL + '?' +
-                'client_id='+encodeURIComponent(clientId)+
-                '&redirect_uri='+encodeURIComponent(redirectURI)+
-                '&scope='+encodeURIComponent(scope)+
-                '&response_type='+encodeURIComponent(responseType)+
-                '&state='+encodeURIComponent(state);
-    console.log(`Trying to log in using ${url}`);
-    fetch(url, {
-        method: 'GET',
-//        mode: 'no-cors',
-        redirect: 'follow',
-      }).then(response => {
-        console.log('in response');
-      }, networkError => {
-        console.log(networkError);
-      });
-
-    return oauthToken;
+    return this.makeRequest('GET',process.env.REACT_APP_SPOTIFY_LOGIN_URL).then(response => {
+      console.log(response);
+    });
   },
 
   search(term) {
       if ( oauthToken === '' ) {
-        return this.getToken();
-
+        alert('No Authorization Token present.');
+        return [];
       } else {
 
-        const url = CORS_URL +
-                    SPOTIFY_API_URL + 'search?' +
+        const url = process.env.REACT_APP_SPOTIFY_API_URL + 'search?' +
                     'q='+encodeURIComponent(term) +
                     '&type='+encodeURIComponent(searchType);
         return fetch(url,{
           method: 'GET',
-//        mode: 'no-cors',
+          mode: 'cors',
           headers: {
             'Authorization': `Bearer ${oauthToken}`
           }
@@ -97,12 +105,12 @@ export const Spotify = {
 
   createPlayList(name) {
       if ( oauthToken === '' ) {
-        this.getToken();
+        alert('No Authorization Token present.');
+        return {uri:'',id:''};
 
       } else {
 
-        const url = CORS_URL +
-                    SPOTIFY_API_URL +
+        const url = process.env.REACT_APP_SPOTIFY_API_URL +
                     'users/' + userId + '/playlists';
         const body = {
           name: name,
@@ -112,6 +120,7 @@ export const Spotify = {
 
         return fetch(url,{
           method: 'POST',
+          mode: 'cors',
           headers: {
             'Authorization': `Bearer ${oauthToken}`
           },
@@ -134,12 +143,12 @@ export const Spotify = {
 
   addTracksToPlayList(playListId, uris) {
       if ( oauthToken === '' ) {
-        this.getToken();
+        alert('No Authorization Token present.');
+        return '';
 
       } else {
 
-        const url = CORS_URL +
-                    SPOTIFY_API_URL +
+        const url = process.env.REACT_APP_.SPOTIFY_API_URL +
                     'playlists/' +
                     playListId +
                     '/tracks';
@@ -150,6 +159,7 @@ export const Spotify = {
 
         return fetch(url,{
           method: 'POST',
+          mode: 'cors',
           headers: {
             'Content-type': 'application/json',
             'Authorization': `Bearer ${oauthToken}`
